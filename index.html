@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Card Reader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8eaff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 14px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .success-message {
+            display: none;
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📇 Business Card Reader</h1>
+        <p class="subtitle">Upload a business card image to automatically extract contact information</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📤</div>
+            <div class="upload-text">Click to upload or drag & drop</div>
+            <div class="upload-subtext">PNG, JPG, or PDF up to 5MB</div>
+            <input type="file" id="fileInput" accept="image/*,.pdf">
+        </div>
+
+        <div class="preview-section" id="previewSection">
+            <img id="previewImage" class="preview-image" alt="Business card preview">
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Scanning business card...</div>
+        </div>
+
+        <div class="form-section" id="formSection">
+            <form id="contactForm">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" name="TITLE" placeholder="John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="companyName">Company Name</label>
+                        <input type="text" id="companyName" name="UF_CRM_15_1759492613074" placeholder="Acme Corp">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="jobTitle">Job Title</label>
+                        <input type="text" id="jobTitle" name="UF_CRM_15_1759492862980" placeholder="CEO">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="text" id="phoneNumber" name="UF_CRM_15_1759492653422[]" placeholder="+32 2 123 45 67">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="website">Website</label>
+                        <input type="text" id="website" name="UF_CRM_15_1759492634519" placeholder="www.example.com">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="address">Address</label>
+                        <input type="text" id="address" placeholder="123 Main Street, Brussels">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <input type="text" id="country" name="UF_CRM_15_1759492685067" placeholder="Belgium">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn-secondary" id="resetBtn">🔄 Scan Another</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">✓ Save to Bitrix24</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✓ Contact successfully saved to Bitrix24!
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            ✗ <span id="errorText">An error occurred. Please try again.</span>
+        </div>
+    </div>
+
+    <script>
+        const OCR_API_KEY = 'K86509461488957';
+        const BITRIX_WEBHOOK = 'https://secheron.bitrix24.com/rest/1/6usgjich33l9dbt7/';
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewSection = document.getElementById('previewSection');
+        const previewImage = document.getElementById('previewImage');
+        const loading = document.getElementById('loading');
+        const formSection = document.getElementById('formSection');
+        const contactForm = document.getElementById('contactForm');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Upload area click
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        async function handleFile(file) {
+            // Validate file
+            if (!file.type.match('image.*') && file.type !== 'application/pdf') {
+                showError('Please upload an image or PDF file');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showError('File size must be less than 5MB');
+                return;
+            }
+
+            // Show preview
+            if (file.type.match('image.*')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewSection.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Show loading
+            loading.classList.add('active');
+            uploadArea.style.display = 'none';
+            hideMessages();
+
+            // Process with OCR
+            await processOCR(file);
+        }
+
+        async function processOCR(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('apikey', OCR_API_KEY);
+            formData.append('language', 'eng');
+            formData.append('isOverlayRequired', 'false');
+            formData.append('OCREngine', '2');
+
+            try {
+                const response = await fetch('https://api.ocr.space/parse/image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.OCRExitCode === 1) {
+                    const extractedText = result.ParsedResults[0].ParsedText;
+                    parseBusinessCard(extractedText);
+                    
+                    loading.classList.remove('active');
+                    formSection.style.display = 'block';
+                } else {
+                    throw new Error('OCR processing failed');
+                }
+            } catch (error) {
+                loading.classList.remove('active');
+                showError('Failed to scan business card. Please try again.');
+                console.error('OCR Error:', error);
+            }
+        }
+
+        function parseBusinessCard(text) {
+            console.log('Extracted text:', text);
+
+            // Extract email
+            const emailRegex = /[\w.-]+@[\w.-]+\.\w+/i;
+            const emailMatch = text.match(emailRegex);
+            if (emailMatch) {
+                // Email can be stored if needed
+            }
+
+            // Extract phone numbers (international format)
+            const phoneRegex = /[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}/g;
+            const phoneMatches = text.match(phoneRegex);
+            if (phoneMatches && phoneMatches.length > 0) {
+                document.getElementById('phoneNumber').value = phoneMatches[0].trim();
+            }
+
+            // Extract website
+            const websiteRegex = /(www\.[^\s]+|https?:\/\/[^\s]+)/i;
+            const websiteMatch = text.match(websiteRegex);
+            if (websiteMatch) {
+                let website = websiteMatch[0].trim();
+                website = website.replace(/https?:\/\//, '').replace(/\/$/, '');
+                document.getElementById('website').value = website;
+            }
+
+            // Extract lines for name and company detection
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            
+            // Try to find name (usually first or second line, capitalized)
+            const nameRegex = /^[A-Z][a-z]+\s+[A-Z][a-z]+/;
+            for (let line of lines) {
+                if (nameRegex.test(line) && !line.includes('@') && !line.includes('www')) {
+                    document.getElementById('fullName').value = line;
+                    break;
+                }
+            }
+
+            // Try to find job title (common titles)
+            const titleKeywords = ['CEO', 'CFO', 'CTO', 'Manager', 'Director', 'Officer', 'President', 'Founder', 'Chief'];
+            for (let line of lines) {
+                if (titleKeywords.some(keyword => line.includes(keyword))) {
+                    document.getElementById('jobTitle').value = line;
+                    break;
+                }
+            }
+
+            // Try to find company name (often in caps or at specific position)
+            for (let line of lines) {
+                if (line === line.toUpperCase() && line.length > 2 && line.length < 50 && 
+                    !phoneMatches?.includes(line) && !line.includes('@')) {
+                    document.getElementById('companyName').value = line;
+                    break;
+                }
+            }
+
+            // Try to find address (contains numbers and street indicators)
+            const addressRegex = /\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Way|Rue|Straat)/i;
+            for (let line of lines) {
+                if (addressRegex.test(line)) {
+                    document.getElementById('address').value = line;
+                    break;
+                }
+            }
+
+            // Try to find country
+            const countries = ['Belgium', 'France', 'Netherlands', 'Germany', 'UK', 'USA', 'Canada'];
+            for (let line of lines) {
+                for (let country of countries) {
+                    if (line.includes(country)) {
+                        document.getElementById('country').value = country;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Form submission
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            hideMessages();
+
+            const formData = {
+                TITLE: document.getElementById('fullName').value,
+                UF_CRM_15_1759492613074: document.getElementById('companyName').value,
+                UF_CRM_15_1759492862980: document.getElementById('jobTitle').value,
+                'UF_CRM_15_1759492653422[]': document.getElementById('phoneNumber').value,
+                UF_CRM_15_1759492634519: document.getElementById('website').value,
+                UF_CRM_15_1759492685067: document.getElementById('country').value,
+            };
+
+            try {
+                // Create contact in Bitrix24
+                const response = await fetch(BITRIX_WEBHOOK + 'crm.contact.add.json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fields: {
+                            NAME: formData.TITLE.split(' ')[0] || '',
+                            LAST_NAME: formData.TITLE.split(' ').slice(1).join(' ') || '',
+                            COMPANY_TITLE: formData.UF_CRM_15_1759492613074,
+                            POST: formData.UF_CRM_15_1759492862980,
+                            PHONE: [{ VALUE: formData['UF_CRM_15_1759492653422[]'], VALUE_TYPE: 'WORK' }],
+                            WEB: [{ VALUE: formData.UF_CRM_15_1759492634519, VALUE_TYPE: 'WORK' }],
+                        }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.result) {
+                    successMessage.classList.add('show');
+                    setTimeout(() => {
+                        resetForm();
+                    }, 2000);
+                } else {
+                    throw new Error('Failed to save contact');
+                }
+            } catch (error) {
+                showError('Failed to save to Bitrix24. Please try again.');
+                console.error('Bitrix24 Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✓ Save to Bitrix24';
+            }
+        });
+
+        // Reset button
+        resetBtn.addEventListener('click', resetForm);
+
+        function resetForm() {
+            contactForm.reset();
+            fileInput.value = '';
+            previewSection.style.display = 'none';
+            formSection.style.display = 'none';
+            uploadArea.style.display = 'block';
+            hideMessages();
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('show');
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        function hideMessages() {
+            successMessage.classList.remove('show');
+            errorMessage.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
