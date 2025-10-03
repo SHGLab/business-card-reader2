@@ -773,30 +773,18 @@
                 if (contactResult.result) {
                     const contactId = contactResult.result;
 
-                    // Step 3: Upload business card file to contact as attachment
-                    if (currentFile) {
+                    // Step 3: Upload business card file to custom field
+                    if (currentFileBase64 && currentFile) {
                         try {
-                            const fileFormData = new FormData();
-                            fileFormData.append('id', contactId);
-                            fileFormData.append('fileData[0]', currentFile, currentFile.name);
-                            fileFormData.append('entityType', 'contact');
-                            fileFormData.append('entityId', contactId);
-
-                            // Upload file using crm.contact.userfield.add or direct attachment
-                            await fetch(BITRIX_WEBHOOK + 'crm.activity.add.json', {
+                            await fetch(BITRIX_WEBHOOK + 'crm.contact.update.json', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
+                                    id: contactId,
                                     fields: {
-                                        OWNER_TYPE_ID: 3, // Contact
-                                        OWNER_ID: contactId,
-                                        TYPE_ID: 4, // File
-                                        SUBJECT: 'Business Card',
-                                        DESCRIPTION: 'Scanned business card image',
-                                        COMPLETED: 'Y',
-                                        FILES: [{
+                                        UF_CRM_1759496324345: {
                                             fileData: [currentFile.name, currentFileBase64]
-                                        }]
+                                        }
                                     }
                                 })
                             });
